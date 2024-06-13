@@ -1,0 +1,87 @@
+Arduino testing code:
+
+#define LEFT_MOTOR_A 2  // IN1 on TB6122
+#define LEFT_MOTOR_B 3  // IN2 on TB6122
+#define RIGHT_MOTOR_A 4  // IN3 on TB6122
+#define RIGHT_MOTOR_B 5  // IN4 on TB6122
+
+#define SENSOR1 A0
+#define SENSOR2 A1
+#define SENSOR3 A2
+#define SENSOR4 A3
+#define SENSOR5 A4
+
+#define THRESHOLD 500  // Adjust this value for sensor calibration
+
+int sensorValues[5];  // Array to store sensor readings
+
+void setup() {
+  // Set motor control pins as output
+  pinMode(LEFT_MOTOR_A, OUTPUT);
+  pinMode(LEFT_MOTOR_B, OUTPUT);
+  pinMode(RIGHT_MOTOR_A, OUTPUT);
+  pinMode(RIGHT_MOTOR_B, OUTPUT);
+
+  // Set sensor pins as input
+  pinMode(SENSOR1, INPUT);
+  pinMode(SENSOR2, INPUT);
+  pinMode(SENSOR3, INPUT);
+  pinMode(SENSOR4, INPUT);
+  pinMode(SENSOR5, INPUT);
+}
+
+void loop() {
+  // Read sensor values
+  for (int i = 0; i < 5; i++) {
+    sensorValues[i] = analogRead(SENSOR1 + i);
+  }
+
+  // Line following logic
+  if (sensorValues[0] < THRESHOLD && sensorValues[1] < THRESHOLD) {
+    // Sharp left turn (both leftmost sensors see black)
+    motorControl(LEFT_FORWARD, RIGHT_BACKWARD);
+  } else if (sensorValues[0] < THRESHOLD) {
+    // Left turn (leftmost sensor sees black)
+    motorControl(LEFT_SLOW_FORWARD, RIGHT_FORWARD);
+  } else if (sensorValues[4] < THRESHOLD && sensorValues[3] < THRESHOLD) {
+    // Sharp right turn (both rightmost sensors see black)
+    motorControl(LEFT_BACKWARD, RIGHT_FORWARD);
+  } else if (sensorValues[4] < THRESHOLD) {
+    // Right turn (rightmost sensor sees black)
+    motorControl(LEFT_FORWARD, RIGHT_SLOW_FORWARD);
+  } else if (sensorValues[2] < THRESHOLD) {
+    // Slight correction (center sensor sees black)
+    motorControl(LEFT_SLOW_FORWARD, RIGHT_SLOW_FORWARD);
+  } else {
+    // Move forward (all sensors see white)
+    motorControl(BOTH_FORWARD, BOTH_FORWARD);
+  }
+}
+
+// Function to control motor direction and speed (replace with your TB6122 control logic)
+void motorControl(int leftMotor, int rightMotor) {
+  switch (leftMotor) {
+    case LEFT_FORWARD:
+      digitalWrite(LEFT_MOTOR_A, HIGH);
+      digitalWrite(LEFT_MOTOR_B, LOW);
+      break;
+    case LEFT_BACKWARD:
+      digitalWrite(LEFT_MOTOR_A, LOW);
+      digitalWrite(LEFT_MOTOR_B, HIGH);
+      break;
+    case LEFT_SLOW_FORWARD:
+      // Implement PWM for slower speed (example using analogWrite)
+      analogWrite(LEFT_MOTOR_A, 128);
+      digitalWrite(LEFT_MOTOR_B, LOW);
+      break;
+    // Add similar cases for other motor directions and speeds
+  }
+
+  switch (rightMotor) {
+    case RIGHT_FORWARD:
+      digitalWrite(RIGHT_MOTOR_A, HIGH);
+      digitalWrite(RIGHT_MOTOR_B, LOW);
+      break;
+    // ... (similar cases for right motor)
+  }
+}
